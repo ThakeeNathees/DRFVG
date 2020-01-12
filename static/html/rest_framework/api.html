@@ -1,0 +1,15 @@
+{% extends "rest_framework/base.html" %}
+
+{% block branding %}
+<span><a href="/" class="navbar-brand">{{API_TITLE}} RestApi</a></span>
+{% endblock %}
+
+{% block userlinks %}
+
+{% if user.is_authenticated %}
+<li><a href="{{logout_url}}">Log out</a></li>
+{% else %}
+<li><a href="{{login_url}}">Log in</a></li>
+{% endif %}
+
+{% endblock %}

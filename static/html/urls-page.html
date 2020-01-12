@@ -1,0 +1,15 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 style="text-align: center; margin-top:10px;margin-bottom:20px">{{title}}</h1>
+
+<pre class="prettyprint">
+    {
+        
+        {% for page in pages %}{{page.name}} : <a href="{{page.url}}" >{{ request.scheme }}://{{ request.META.HTTP_HOST }}{{page.url}}</a>,
+        {% endfor %}
+    }
+</pre>
+{% endblock %}

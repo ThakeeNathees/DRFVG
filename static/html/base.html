@@ -1,0 +1,81 @@
+{% load static %}
+{% load i18n %}
+{% load rest_framework %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="robots" content="NONE,NOARCHIVE" />
+    
+    {% if title %}
+    <title>{{title}}</title>
+    {% else %}
+    <title>SEBE-home</title>
+    {% endif %}
+    
+    <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap-tweaks.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap.min.css" %}"/>
+    
+  </head>
+
+  {% block body %}
+  <body>
+
+    <div class="wrapper">
+      
+      <!-- -------------- navbar -------------- -->
+        <div class="navbar navbar-static-top navbar-inverse" role="navigation" aria-label="navbar">
+          <div class="container">
+
+            <!-- brand name  -->
+            <a class='navbar-brand' rel="nofollow" href='/'>
+              {% if brand_name %}{{ brand_name }} {% else %} {{API_TITLE}} RestApi {% endif %}
+            </a>
+
+             <!-- login logout  -->
+            <ul class="nav navbar-nav pull-right">  
+              {% if user.is_authenticated %}
+              <li><a href="{{logout_url}}">Log out</a></li>
+              {% else %}
+              <li><a href="{{login_url}}">Log in</a></li>
+              {% endif %}
+            </ul>
+
+          </div>
+        </div>
+
+      <!-- ------------- content ------------------------  -->
+      <div class="container" style="margin-top: 30px;">
+          {% block content %}
+          {% endblock content %}
+      </div>
+          
+
+    </div>
+
+    
+
+    <!-- -------------- scripts -------------- -->
+    <script>
+      window.drf = {
+        csrfHeaderName: "{{ csrf_header_name|default:'X-CSRFToken' }}",
+        csrfToken: "{% if request %}{{ csrf_token }}{% endif %}"
+      };
+    </script>
+    <script src="{% static "rest_framework/js/jquery-3.4.1.min.js" %}"></script>
+    <script src="{% static "rest_framework/js/ajax-form.js" %}"></script>
+    <script src="{% static "rest_framework/js/csrf.js" %}"></script>
+    <script src="{% static "rest_framework/js/bootstrap.min.js" %}"></script>
+    <script src="{% static "rest_framework/js/prettify-min.js" %}"></script>
+    <script src="{% static "rest_framework/js/default.js" %}"></script>
+    <script>
+      $(document).ready(function() {
+        $('form').ajaxForm();
+      });
+    </script>
+
+  </body>
+  {% endblock %}
+</html>

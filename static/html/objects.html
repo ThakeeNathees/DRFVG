@@ -1,0 +1,16 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 style="text-align: center; margin-top:10px;margin-bottom:20px">{{title}}</h1>
+
+<pre class="prettyprint">
+    {
+        List   : <a href="{{ all_url }}" >{{ request.scheme }}://{{ request.META.HTTP_HOST }}{{ all_url }}</a>, 
+        Detail : [
+            {% for url in urls %} <a href="{{url}}" >{{ request.scheme }}://{{ request.META.HTTP_HOST }}{{url}}</a>,
+            {% endfor %}]
+    }
+</pre>
+{% endblock %}

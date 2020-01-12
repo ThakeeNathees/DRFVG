@@ -1,6 +1,8 @@
 
 LOGIN_PATH_NAME  = 'api-login'  # 'admin:login'
 LOGOUT_PATH_NAME = 'api-logout' # 'admin:logout'
+LOGIN_URL        = 'api-login/'
+LOGOUT_URL       = 'api-logout/'
 HOME_PAGE_NAME   = 'home-page'
 API_TITLE        = 'DRFVG'
 DEFAULT_OBJECT_COUNT = 10
@@ -23,13 +25,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import UpdateAPIView, ListCreateAPIView
 from rest_framework import serializers
-
-def authentication_urls():
-    urlpatterns = [
-        path('login/',  login,  name='api-login'),
-        path('logout/', logout, name='api-logout'),
-    ]
-    return urlpatterns
 
 ## @login_required decorator
 from django.shortcuts import render, reverse, redirect
@@ -60,7 +55,10 @@ def register_apps(app_registry):
             app_urls.append(UrlRenderCtx(app_name, reverse('%s-home'%app_name)))
         return generate_ulr_page_response(request, app_urls, API_TITLE)
 
-    urlpatterns = []
+    urlpatterns = [
+        path(LOGIN_URL,  login,  name=LOGIN_PATH_NAME),
+        path(LOGOUT_URL, logout, name=LOGOUT_PATH_NAME),
+    ]
     for app_name in app_registry:
         urlpatterns.append(path( '%s/'%app_name, include('%s.urls'%app_name) ))
 
@@ -69,9 +67,8 @@ def register_apps(app_registry):
 
 
 ## returns the url patterns for the models to be registered
-def register_models(model_registry):
+def register_models(model_registry, app_name=None):
     urlpatterns = []
-    app_name = ''
     for Model in model_registry:
         app_name = Model._meta.app_label
 
@@ -93,9 +90,13 @@ def register_models(model_registry):
             path(model_list,   make_list_view_class(Model).as_view(),   name=list_url_name),
             path(model_detail, make_detail_view_class(Model).as_view(), name=detail_url_name),
         ]
+    if app_name == None:
+        raise Exception('app_name gethered from Model._meta.app_label, no model was provided. use app_name keyword argument')
     urlpatterns += [
-        path('', AppHomeResponse(model_registry),  name='%s-home'%app_name)
+        path('', AppHomeResponse(model_registry, app_name),  name='%s-home'%app_name),
     ]
+    
+    
     return urlpatterns
 
 
@@ -295,17 +296,16 @@ class UrlRenderCtx:
 
 class AppHomeResponse:
     ## model_registry is a list of django.db.models 
-    def __init__(self, model_registry):
+    def __init__(self, model_registry, app_name):
         self.model_registry = model_registry
-    
-
+        self.app_name = app_name
 
     @login_required
     def __call__(self, request):
         urlctx = []
         for Model in self.model_registry:
             urlctx.append( UrlRenderCtx(Model._meta.verbose_name_plural, reverse(getPageUrlName(Model))) )
-        return generate_ulr_page_response(request, urlctx, Model._meta.app_label.capitalize())
+        return generate_ulr_page_response(request, urlctx, self.app_name.capitalize())
 
 class ObjectHomeResponse:
     def __init__(self, Model):
