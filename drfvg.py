@@ -1,10 +1,22 @@
 
-LOGIN_PATH_NAME  = 'api-login'  # 'admin:login'
-LOGOUT_PATH_NAME = 'api-logout' # 'admin:logout'
+#API_TITLE        = 'DRFVG'
+class ApiNameHolder:
+    API_NAME = 'DRFVG'
+    @staticmethod
+    def get_name():
+        return ApiNameHolder.API_NAME
+    @staticmethod
+    def set_name(name):
+        ApiNameHolder.API_NAME = name
+    
+
+## if you change the name of login, logout path name -> change them in base.html, rest_framework/api.html too
+LOGIN_PATH_NAME  = 'api-login'
+LOGOUT_PATH_NAME = 'api-logout'
+
 LOGIN_URL        = 'api-login/'
 LOGOUT_URL       = 'api-logout/'
 HOME_PAGE_NAME   = 'home-page'
-API_TITLE        = 'DRFVG'
 DEFAULT_OBJECT_COUNT = 10
 
 import os
@@ -46,14 +58,16 @@ def login_required(handler):
             return redirect(reverse(LOGIN_PATH_NAME))
     return wrapper
 
-def register_apps(app_registry):
+def register_apps(app_registry, api_name='DRFVG'):
+
+    ApiNameHolder.set_name(api_name)
 
     @login_required
     def home_page_response(request):
         app_urls = []
         for app_name in app_registry:
             app_urls.append(UrlRenderCtx(app_name, reverse('%s-home'%app_name)))
-        return generate_ulr_page_response(request, app_urls, API_TITLE)
+        return generate_ulr_page_response(request, app_urls, ApiNameHolder.get_name())
 
     urlpatterns = [
         path(LOGIN_URL,  login,  name=LOGIN_PATH_NAME),
@@ -67,10 +81,9 @@ def register_apps(app_registry):
 
 
 ## returns the url patterns for the models to be registered
-def register_models(model_registry, app_name=None):
+def register_models(model_registry, app_name):
     urlpatterns = []
     for Model in model_registry:
-        app_name = Model._meta.app_label
 
         model_name_s    = Model._meta.verbose_name
         model_name_p    = Model._meta.verbose_name_plural 
@@ -90,13 +103,10 @@ def register_models(model_registry, app_name=None):
             path(model_list,   make_list_view_class(Model).as_view(),   name=list_url_name),
             path(model_detail, make_detail_view_class(Model).as_view(), name=detail_url_name),
         ]
-    if app_name == None:
-        raise Exception('app_name gethered from Model._meta.app_label, no model was provided. use app_name keyword argument')
     urlpatterns += [
         path('', AppHomeResponse(model_registry, app_name),  name='%s-home'%app_name),
     ]
-    
-    
+
     return urlpatterns
 
 
@@ -148,7 +158,7 @@ def make_list_view_class(Model):
         
         def get_renderer_context(self):
             context = super().get_renderer_context()
-            context['API_TITLE']  = API_TITLE
+            context['API_TITLE']  = ApiNameHolder.get_name()
             context['logout_url'] = reverse(LOGOUT_PATH_NAME)
             context['login_url']  = reverse(LOGIN_PATH_NAME)
             return context
@@ -280,7 +290,7 @@ def generate_ulr_page_response(request, urlctx, page_title):
             'request': request,
             'title'  : page_title,
             'pages'  : urlctx,
-            'API_TITLE': API_TITLE,
+            'API_TITLE': ApiNameHolder.get_name(),
             'login_url' :  reverse(LOGIN_PATH_NAME),
             'logout_url' : reverse(LOGOUT_PATH_NAME),
         })
@@ -309,7 +319,8 @@ class AppHomeResponse:
 
 class ObjectHomeResponse:
     def __init__(self, Model):
-        self.title              = Model.__name__ 
+        self.title              = ApiNameHolder.get_name()
+        self.model_name         = Model.__name__ 
         self.list_url_name      = getListUrlName(Model)
         self.detail_url_name    = getDetailUrlName(Model)
         self.Model              = Model
@@ -318,7 +329,8 @@ class ObjectHomeResponse:
     def __call__(self, request):
         if 'HTTP_USER_AGENT' in request.META.keys():
             return render(request, 'objects.html', {
-                'title'     : self.title,
+                'API_TITLE'     : self.title,
+                'model_name': self.model_name,
                 'request'   : request,
                 'all_url'   : reverse(self.list_url_name),
                 'urls' : [
@@ -346,7 +358,7 @@ class LoginForm(forms.Form):
 
 
 def login(request):
-    ctx = { 'title': API_TITLE }
+    ctx = { 'title': ApiNameHolder.get_name() }
     ## redirects
     if request.user.is_authenticated:
         return redirect(HOME_PAGE_NAME)

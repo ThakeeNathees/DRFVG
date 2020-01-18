@@ -22,14 +22,16 @@ register apps in `urls.py`
 from drfvg import register_apps
 urlpatterns = [
     path('admin/', admin.site.urls),
-] + register_apps( ['app1', 'app2'] )
+] + register_apps( ['app1', 'app2'], api_name='MyApi' )
 ```
-register models in `BASE_DIR/app/urls.py`
+register models in `BASE_DIR/app1/urls.py`
 ```python
 from django.urls import path
 from .models import Model1, Model2
 from drfvg import register_models
 urlpatterns = [
     ## your paths
-] + register_models( [Model1, Model2] )
+] + register_models( [Model1, Model2], app_name='app1')
 ```
+## Contribute
+feel free to open issues if any bug found, email me if you have any feedback!!!

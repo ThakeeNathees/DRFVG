@@ -7,9 +7,9 @@
 {% block userlinks %}
 
 {% if user.is_authenticated %}
-<li><a href="{{logout_url}}">Log out</a></li>
+<li><a href="{% url 'api-logout' %}">Log out</a></li>
 {% else %}
-<li><a href="{{login_url}}">Log in</a></li>
+<li><a href="{% url 'api-login' %}">Log in</a></li>
 {% endif %}
 
 {% endblock %}
